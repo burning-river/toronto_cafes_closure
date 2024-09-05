@@ -11,7 +11,7 @@ in Toronto including the restaurant name and 125 cuisine types (Afghan, Café, M
 and 79 chain cafes such as Aroma Espresso Bar, Delimark Cafe, Starbucks and Tim
 Horton's. Spatially, the cafes were more concentrated in the Old Toronto area which
 includes downtown (165 cafes in 120 km2 area) and more spread out in the rest of the
-city (258 cafes in 544 km2 area). Additionally, since the Kaggle dataset was 8 years old, we gathered the labels by
+city (258 cafes in 544 km2 area). Additionally, since the Kaggle dataset was 4 years old, we gathered the labels by
 programatically looking up the name and address of each restaurant on Google and
 searching for the phrase ‘permanently closed’ in the html text. The location of open
 and closed cafes throughout the city and a closer look at downtown
