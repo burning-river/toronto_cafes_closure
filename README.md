@@ -32,15 +32,17 @@ Toronto. We will later test the viability of these locations for opening new caf
 </p>
 
 * __Toronto Population Data:__ The dataset contains information about the population
-of Toronto divided into small blocks along with their spatial information [Open Canada](https://open.canada.ca/data/en/dataset/32f1a777-9fcf-4e4a-8c66-82c66a2e76f1). Figure 3,
-shows the population density (people count per km2) within the city. This provides us
-with an estimate of the number of customers available locally around each cafe.
+of Toronto divided into small blocks along with their spatial information [Open Canada](https://open.canada.ca/data/en/dataset/32f1a777-9fcf-4e4a-8c66-82c66a2e76f1). This provides us with an estimate of the number of customers available locally around each cafe.
+
 * __Open Street Map (OSM) Data:__ We also pulled data from the OpenStreetMap. The
 relevant data is mentioned below.
 
   – __Toronto subway, streetcar and city bus stations:__ Contains information
 about the subway, street car and bus stops in the city. In total there were 7118
-such stops most of which were located along the streets of Toronto (Figure 4).
+such stops most of which were located along the streets of Toronto. For illustration, we can see the arrangement of public transport stops in downtown below.
+<p>
+<img src="figures/public_transport_downtown.png" width="400" height="300"/>
+</p>
 
   – __Downtown Boundary:__ This boundary defines Old Toronto and allows for comparisons
 between downtown and other regions.
