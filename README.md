@@ -14,14 +14,23 @@ includes downtown (165 cafes in 120 km2 area) and more spread out in the rest of
 city (258 cafes in 544 km2 area). Additionally, since the Kaggle dataset was 8 years old, we gathered the labels by
 programatically looking up the name and address of each restaurant on Google and
 searching for the phrase ‘permanently closed’ in the html text. The location of open
-and closed cafes throughout the city is shown in Figure 1 with a closer look at downtown
-region in Figure 2. In total, the cafes in the city experienced a 27% closure rate
-in the past 8 years.
+and closed cafes throughout the city and a closer look at downtown
+region are shown in figure below. In total, the cafes in the city experienced a 27% closure rate
+in the past 4 years.
+<p float="left">
+<img src="figures/cafe_locations.png" width="500" height="300"/>
+<img src="figures/downtown_cafes.png" width="500" height="300"/>
+</p>
+
 * __Toronto Commercial Listings for Lease:__ The Toronto commercial listings data
 was obtained from the Zolo website [Zolo](https://www.zolo.ca/toronto-real-estate/commercial-for-lease). We scraped details including rental address and price per square feet for 644 listings in the city. We converted the address information
 to longitude and latitude information using the Geodata API. The rents ranged from
 $1 to $900 per square feet with an average of $34 in downtown and $21 in the rest of
-Toronto. We will later test the viability of these locations for opening new cafes.
+Toronto. We will later test the viability of these locations for opening new cafes. The figure below shows the available commercial listings in the city.
+<p>
+<img src="figures/rental_space.png" width="400" height="300"/>
+</p>
+
 * __Toronto Population Data:__ The dataset contains information about the population
 of Toronto divided into small blocks along with their spatial information [Open Canada](https://open.canada.ca/data/en/dataset/32f1a777-9fcf-4e4a-8c66-82c66a2e76f1). Figure 3,
 shows the population density (people count per km2) within the city. This provides us
