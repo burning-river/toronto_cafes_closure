@@ -57,3 +57,62 @@ Toronto.
   – __Local Attractions:__ Contains locations and shapes of all tourist spots in the city
 including zoos, museums, parks, etc. In total there were 94 such spots.
 
+## Methods
+
+### Data pre-processing
+
+Even though the raw dataset contained cafe information in Toronto, there were 150 observations
+that were outside the city border (perhaps within the Greater Toronto Area or GTA)
+and therefore we dropped them in our analysis. The label for cafes indicating whether they
+are closed or not was validated by manually searching the names and addresses of some
+randomly closed cafes on Google. Additionally, the cafe name information was in the form
+of unstructured text. For example, while identifying chain cafes, the ‘Tim Horton's Cafe’
+was incorrectly spelled as ‘Tim Horton’, ‘Tim Horton Donuts’ or ‘Tim Hortons’ in a few
+cases. We included every misspelled version of the cafe along with the correct name in the
+list of chain cafes. We then used string comparison of each cafe in the dataset to the list of
+chains to determine if it was a chain or not.
+
+The commercial property rental dataset contained 380 duplicate values with identical location
+and rent and therefore we removed them. Finally, the Toronto population data contained 21,972 values from the GTA and 2 null values
+that we dropped from downstream analysis.
+
+### Exploratory Data Analysis
+
+#### Rent comparison between downtown and rest of Toronto
+We observe that rents in downtown ($34) are appreciably higher than outer
+regions ($20) with statistical significance (p < 2.2e-16). However, the mean rent in areas around
+the cafes doesn’t distinguish between open and closed cafes suggesting that rent does not
+have significant association with cafe closure.
+<p>
+<img src="figures/rent_comparison.png" width="400" height="300"/>
+</p>
+
+#### Chain vs. independent cafe
+We labelled each cafe in our data whether it is a chain cafe or not with the hypothesis that
+chain cafes will be less susceptible to closures. This was validated in our data after performing
+chi-square contingency test where we compare the observed vs. expected distribution of
+cafe closures in chain vs. non-chain cafes. The discrepancy between the
+distributions is statistically significant (p−value = 1E-4). Chain cafes closed at only 9% rate compared to non-chain cafes at 31%.
+
+Observed distribution of closure in chain
+vs. non-chain cafes
+|                   |  Closed  |  Open |
+| :---------------- | :------: | ----: |
+| Chain             |   7      | 72    |
+| Not-chain         |   116    | 258   |
+
+Expected distribution of closure in chain
+vs. non-chain cafes
+|                   |  Closed  |  Open |
+| :---------------- | :------: | ----: |
+| Chain             |   21     | 58    |
+| Not-chain         |   102    | 272   |
+
+#### Local competitors
+We compared the number of restaurants within a block of each cafe. Our hypothesis was that
+the closed cafes may have more restaurants around them giving them tougher competition.
+This was validated from our analysis in the figure below, where we see that the closed cafes had
+slightly more nearby restaurants (p = 0.02).
+<p>
+<img src="figures/num_restaurants.png" width="400" height="300"/>
+</p>
