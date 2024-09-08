@@ -146,7 +146,7 @@ the interpolated rental distribution in the city. The highest rents were at the 
 Lastly, we estimated the cafe rental costs by the rental cost
 of the nearest grid point to each cafe.
 <p>
-<img src="figures/rent_idw.png" width="400" height="300"/>
+<img src="figures/rent_idw.png" width="500" height="300"/>
 </p>
 • Distance to nearest street.
 
