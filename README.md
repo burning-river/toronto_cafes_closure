@@ -116,3 +116,40 @@ slightly more nearby restaurants (p = 0.02).
 <p>
 <img src="figures/num_restaurants.png" width="400" height="300"/>
 </p>
+
+## Predictive Modeling
+Using our myriad data sources, we engineered features and trained a classification model that predicts if the cafe was closed or open. 
+
+### Feature engineering 
+Through our wide collection of datasets, we created the following features:
+• Chain cafe (binary): Whether the cafe name is close to ‘Aroma Espresso Bar’, ‘Delimark
+Cafe’, ‘Starbucks’ or ‘Tim Horton’s’.
+
+• Number of nearby restaurants (continuous): We created a bounding box of 1 block in
+each direction and counted the number of restaurants (including all cuisines).
+
+• Number of nearby parking lots (continuous) using the bounding box method.
+
+• Distance to nearest tourist attraction.
+
+• Number of public transit stops within a block.
+
+• Rental costs of cafes: We used the rent data from Zolo and a grid covering the
+Toronto region to interpolate the rental cost across the city. We used the inverse
+distance weighting technique for interpolation. The figure below shows
+the interpolated rental distribution in the city. The highest rents were at the following places:
+
+  - $900/sqft in 1420 Bayview Ave.
+  - $800/sqft in B5-95 State Crown Blvd.
+  - $5300/sqft MAIN-369 Eglinton Avenue W.
+
+Lastly, we estimated the cafe rental costs by the rental cost
+of the nearest grid point to each cafe.
+<p>
+<img src="figures/rent_idw.png" width="400" height="300"/>
+</p>
+• Distance to nearest street.
+
+• Whether the cafe is located in downtown or not.
+
+• Customer density nearby. 
