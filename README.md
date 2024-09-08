@@ -134,6 +134,12 @@ each direction and counted the number of restaurants (including all cuisines).
 
 • Number of public transit stops within a block.
 
+• Distance to nearest street.
+
+• Whether the cafe is located in downtown or not.
+
+• Customer density nearby.
+
 • Rental costs of cafes: We used the rent data from Zolo and a grid covering the
 Toronto region to interpolate the rental cost across the city. We used the inverse
 distance weighting technique for interpolation. The figure below shows
@@ -147,9 +153,4 @@ Lastly, we estimated the cafe rental costs by the rental cost
 of the nearest grid point to each cafe.
 <p>
 <img src="figures/rent_idw.png" width="500" height="300"/>
-</p>
-• Distance to nearest street.
-
-• Whether the cafe is located in downtown or not.
-
-• Customer density nearby. 
+</p> 
