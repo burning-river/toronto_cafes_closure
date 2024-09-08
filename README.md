@@ -154,3 +154,25 @@ of the nearest grid point to each cafe.
 <p>
 <img src="figures/rent_idw.png" width="500" height="300"/>
 </p> 
+
+## Model building 
+After extracting relevant location, cost of business and nearby competition
+based features, we moved on to the predictive modeling stage of the project. We
+trained a couple of classification models: elastic net and random forest classifier. We used
+nested grid search spatial cross-validation to fine-tune our model with 5 outer folds and 5
+repetitions. We chose the fine-tuned model based on the best AUC score.
+
+Using the same features, we use the available commercial space rental data as the test set.
+We predict closure for both non-chain and chain cafes and plot the best and worst locations
+for both on the basemap of Toronto.
+
+## Results
+Our best model from the two was the elastic net model since it had the largest AUC scores
+on the nested cross-validation sets. We obtained a mean AUC of 0.64 for the outer folds from the elastic net
+model. The model does a modest job of predicting store closure.
+
+From the test set, we predict top and worst locations based on closure probabilities in the
+city as shown in the figure below. The red spots indicate the worst whereas the green ones the best.
+<p>
+<img src="figures/location_recommendations.png" width="400" height="300"/>
+</p>
