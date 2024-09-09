@@ -1,16 +1,23 @@
+# Data wrangling
 library(sf)
 library(osmdata)
 library(tidyverse)
-library(tmap)
-library(osmdata)
-library(tmaptools)
 library(OpenStreetMap)
 library(janitor)
 library(readxl)
+library(stringr)
+library(geodata)
+library(GEOmap)
+
+# Visualization
+library(tmap)
+library(tmaptools)
 library(ggmap)
 library(grid)
-library(stringr)
 library(ggplot2)
+library(rasterVis)
+
+# Machine learning
 library(lgr)
 library(mlr3)
 library(mlr3spatiotempcv)
@@ -22,21 +29,16 @@ library(mlr3extralearners)
 library(sperrorest)
 library(mlr3tuning)
 library(glmnet)
-library(geodata)
 library(spatstat)
 library(gstat)
 library(terra)
-library(GEOmap)
 library(geosphere)
-library(rasterVis)
 library(knitr)
 library(stars)
 cwd = 'C:/Users/saura/OneDrive/Desktop/DATA-6500/Project'
 options(dplyr.summarise.inform = FALSE)
 # api_secret <- '#### YOUR API KEY'
 # register_google(key = api_secret)
-```
-
 
 # defining bounding box of Toronto
 toronto_bbox = st_bbox(c(xmin = -79.6392, 
@@ -63,14 +65,14 @@ toronto_border = opq(toronto_bbox) |>
 cafes_data_sf = cafes_data %>% 
   st_as_sf(coords = c("longitude", "latitude"), crs=4326)
 
-# subsetting cafes only within Toronto border and removing duplcate rows
+# subsetting cafes only within Toronto border and removing duplicate rows
 cafes_data_sf = cafes_data_sf[toronto_border, , op = st_within]  
 cafes_data_sf = cafes_data_sf[!duplicated(cafes_data_sf), ]
 
 # retrieving basemap of Toronto showing streets
 toronto_basemap = read_osm(toronto_border, type='apple-iphoto', mergeTiles=TRUE)
 
-# querying Old Toronto border
+# querying Old Toronto/downtown border
 toronto_downtown_border = opq(toronto_bbox) |> 
   add_osm_feature(key = "boundary", value = "administrative") |> 
   add_osm_feature(key = 'admin_level', value = '8') |>
@@ -101,6 +103,7 @@ downtown_locations = tm_shape(downtown_basemap, simplify = 0.1, unit = 'km')+
   tm_dots(col = 'is_closed', size = 0.20, title = 'is_closed', palette=c('darkgreen', 'red'))+
   tm_layout(legend.text.size = 0.8, legend.width = 0.6)
 
+# bounding box for downtown Toronto
 area_of_detail = st_bbox(c(xmin = -79.49282, 
                            xmax = -79.27851,
                            ymin = 43.61038,
@@ -219,6 +222,165 @@ toronto_attractions = opq(toronto_bbox) |>
   osmdata_sf() |> 
   (\(x) x$osm_polygons)() |> 
   select(name)
+
+toronto_attractions = toronto_attractions[toronto_border,,op=st_within]
+
+ggplot(rent_downtown_outside_sf, aes(x=in_downtown, y=rent, fill=in_downtown)) + 
+  geom_boxplot(alpha=0.5)+
+  theme(legend.position="none")+
+  labs(title="Rent per square feet",x="IN DOWNTOWN?", y="$/sqft")+
+  ylim(0, 100)+
+  theme(plot.title = element_text(size=10), 
+        axis.text.y =element_text(size=10),
+        axis.text.x =element_text(size=10))
+MWU_rent = wilcox.test(rent ~ in_downtown, data=rent_downtown_outside_sf)
+
+# calculating distance between cafes and nearest public transport stop
+cafes_stop_dist = st_distance(cafes_data_sf, toronto_stations)
+cafes_stop_nearest = apply(cafes_stop_dist, 1, FUN = min)
+cafes_data_sf$nearest_stop_dist = cafes_stop_nearest
+MWU_nearest_stop_dist = wilcox.test(nearest_stop_dist ~ is_closed, data=cafes_data_sf)
+
+# creating feature capturing number of stops within 2 blocks of each cafe
+delta = 0.001 # 100 meters or 2 blocks
+n_rows = dim(cafes_data_sf)[1]
+n_stops_arr <- array(numeric(), c(n_rows,0))
+for (ind in 1:n_rows) {
+  long = cafes_data_sf$geometry[[ind]][1]
+  lat = cafes_data_sf$geometry[[ind]][2]
+  bbox = st_bbox(c(xmin = long - delta, 
+                   xmax = long + delta,
+                   ymin = lat - delta,
+                   ymax = lat + delta),
+                 crs = st_crs(4326)) %>% st_as_sfc()
+  n_stops = cafes_data_sf[bbox, , op = st_within]
+  n_stops_arr = append(n_stops_arr, dim(n_stops)[1])
+}
+cafes_data_sf$num_stops_nearby = n_stops_arr
+MWU_num_stops_nearby = wilcox.test(num_stops_nearby ~ is_closed, data=cafes_data_sf)
+
+# Creating feature capturing number of cafes within bounding box of 2 blocks
+delta = 0.001 # 100 meters or 2 blocks
+n_rows = dim(cafes_data_sf)[1]
+n_cafes_arr <- array(numeric(), c(n_rows,0))
+for (ind in 1:n_rows) {
+  long = cafes_data_sf$geometry[[ind]][1]
+  lat = cafes_data_sf$geometry[[ind]][2]
+  bbox = st_bbox(c(xmin = long - delta, 
+                   xmax = long + delta,
+                   ymin = lat - delta,
+                   ymax = lat + delta),
+                 crs = st_crs(4326)) %>% st_as_sfc()
+  n_cafes = cafes_data_sf[bbox, , op = st_within]
+  n_cafes_arr = append(n_cafes_arr, dim(n_cafes)[1]-1)
+}
+cafes_data_sf$num_cafes_nearby = n_cafes_arr
+MWU_num_cafes_nearby = wilcox.test(num_cafes_nearby ~ is_closed, data=cafes_data_sf)
+
+# creating feature capturing population and pop density within 2 blocks 
+delta = 0.001
+n_customers_arr <- array(numeric(), c(n_rows,0))
+n_cust_density_arr <- array(numeric(), c(n_rows,0))
+for (ind in 1:n_rows) {
+  long = cafes_data_sf$geometry[[ind]][1]
+  lat = cafes_data_sf$geometry[[ind]][2]
+  bbox = st_bbox(c(xmin = long - delta, 
+                   xmax = long + delta,
+                   ymin = lat - delta,
+                   ymax = lat + delta),
+                 crs = st_crs(4326)) %>% st_as_sfc()
+  n_customers_bbox = toronto_population_sf[bbox, , op = st_within]
+  n_customers = sum(n_customers_bbox$pop)
+  n_cust_density = mean(n_customers_bbox$pop_density)
+  n_customers_arr = append(n_customers_arr, n_customers)
+  n_cust_density_arr = append(n_cust_density_arr, n_cust_density)
+}
+cafes_data_sf$num_customers_nearby = n_customers_arr
+cafes_data_sf$cust_density_nearby = n_cust_density_arr
+MWU_num_customers_nearby = wilcox.test(num_customers_nearby ~ is_closed, data=cafes_data_sf)
+MWU_cust_density_nearby = wilcox.test(cust_density_nearby ~ is_closed, data=cafes_data_sf)
+
+# calculating rent at the cafe location using inverse distance weighting
+toronto_border_transformed = toronto_border |>
+  st_transform("EPSG:6345")
+
+grd_toronto = st_bbox(toronto_border_transformed)  |>
+  st_as_stars(dx = 300)  |>
+  st_crop(toronto_border_transformed)
+
+rent_per_sqft_trans_sf =  rent_per_sqft_sf |>
+  st_transform("EPSG:6345")
+
+inv_dist_weight <- idw(rent~1, rent_per_sqft_trans_sf, grd_toronto)
+interpolated_rent <- data.frame(grd_toronto, inv_dist_weight) |>
+  select(x, y, var1.pred)
+interpolated_rent = na.omit(interpolated_rent)
+
+interpolated_rent_trans = interpolated_rent |>
+  st_as_sf(coords = c("x", "y"), crs=6345) |>
+  st_transform('EPSG:4326')
+
+cafe_nearest_rent = st_distance(cafes_data_sf, interpolated_rent_trans)
+n_rows = dim(cafes_data_sf)[1]
+n_rent_idw_arr <- array(numeric(), c(n_rows,0))
+for (ind in 1:n_rows) {
+  nearest_point_ind = which.min(cafe_nearest_rent[ind,])
+  n_rent_idw_arr = append(n_rent_idw_arr, as.numeric(cafe_nearest_rent[ind, nearest_point_ind]))
+}
+cafes_data_sf$rent_idw = n_rent_idw_arr
+MWU_rent_idw = wilcox.test(rent_idw ~ is_closed, data=cafes_data_sf)
+
+# creating feature capturing whether cafe is in downtown or not
+in_downtown_arr <- array(numeric(), c(n_rows,0))
+for (ind in 1:n_rows) {
+  in_downtown = length(cafes_data_sf$geometry[ind][toronto_downtown_border,,op=st_within])
+  in_downtown_arr = append(in_downtown_arr, in_downtown)
+}
+cafes_data_sf$in_downtown = as.logical(in_downtown_arr)
+
+# creating feature capturing whether cafe is a chain or not
+chain_cafes = c('Aroma espresso bar', 'Aroma Espresso Bar', 'Delimark Cafe', 'Delimark Cafes', 'Starbucks','Tim Horton', 'Tim Horton Donuts', 'Tim Horton’s','Tim Hortons')
+
+chain_arr <- array(logical(), c(n_rows,0))
+for (ind in 1:n_rows) {
+  name = cafes_data_sf$name[ind]
+  chain_or_no = name %in% chain_cafes
+  chain_arr = append(chain_arr, chain_or_no)
+}
+cafes_data_sf$chain_or_no = chain_arr
+cafes_open_data_sf = cafes_data_sf[(cafes_data_sf$is_closed == FALSE),]
+cafes_closed_data_sf = cafes_data_sf[(cafes_data_sf$is_closed == TRUE),]
+
+cafes_closed_sf_chain = cafes_closed_data_sf[(cafes_closed_data_sf$chain_or_no == TRUE),]
+cafes_open_sf_chain = cafes_open_data_sf[(cafes_open_data_sf$chain_or_no == TRUE),]
+cafes_closed_sf_other = cafes_closed_data_sf[(cafes_closed_data_sf$chain_or_no == FALSE),]
+cafes_open_sf_other = cafes_open_data_sf[(cafes_open_data_sf$chain_or_no == FALSE),]
+
+observed_table <- matrix(c(dim(cafes_closed_sf_chain)[1],
+                           dim(cafes_open_sf_chain)[1],
+                           dim(cafes_closed_sf_other)[1],
+                           dim(cafes_open_sf_other)[1]),
+                         nrow = 2, ncol = 2, byrow = T)
+rownames(observed_table) <- c('Chain', 'Not chain')
+colnames(observed_table) <- c('Closed', 'Open')
+
+expected_distribution <- chisq.test(observed_table)
+expected_distribution
+
+# Creating feature capturing distance to the nearest open cafe
+cafe_cafe_dist = st_distance(cafes_data_sf, cafes_open_data_sf)
+n_rows = dim(cafes_data_sf)[1]
+cafe_nearest <- array(numeric(), c(n_rows,0))
+for (ind in 1:n_rows) {
+  cafe_cafe_nearest = as.numeric(min(cafe_cafe_dist[ind,]))
+  if (cafe_cafe_nearest == 0.0){
+    cafe_cafe_nearest = sort(cafe_cafe_dist[ind,])[2]
+  }
+  cafe_nearest = append(cafe_nearest, as.numeric(cafe_cafe_nearest))
+}
+
+cafes_data_sf$nearest_cafe_dist = cafe_nearest
+MWU_nearest_cafe_dist = wilcox.test(nearest_cafe_dist ~ is_closed, data=cafes_data_sf)
 
 # creating feature capturing distance to nearest chain cafe
 chain_cafes_df = cafes_data_sf[(cafes_data_sf$chain_or_no == TRUE),]
