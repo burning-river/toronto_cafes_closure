@@ -109,12 +109,9 @@ vs. non-chain cafes
 | Not-chain         |   102    | 272   |
 
 #### Local competitors
-We compared the number of restaurants within a block of each cafe. Our hypothesis was that
-the closed cafes may have more restaurants around them giving them tougher competition.
-This was validated from our analysis in the figure below, where we see that the closed cafes had
-slightly more nearby restaurants (p = 0.02).
+We compared the proximity of cafes to all restaurants in the city by calculating the harmonic mean of the distances. The hypothesis was that the further the distance between a cafe and restaurants in the city, lesser the competition and therefore lower the closure rate. We see some indication of that in the boxplot below where the median distance between open cafes and restaurants is larger than for closed cafes (p = 0.08). 
 <p>
-<img src="figures/num_restaurants.png" width="400" height="300"/>
+<img src="figures/num_restaurants.png" width="450" height="300"/>
 </p>
 
 ## Predictive Modeling
@@ -125,20 +122,25 @@ Through our wide collection of datasets, we created the following features:
 • Chain cafe (binary): Whether the cafe name is close to ‘Aroma Espresso Bar’, ‘Delimark
 Cafe’, ‘Starbucks’ or ‘Tim Horton’s’.
 
-• Number of nearby restaurants (continuous): We created a bounding box of 1 block in
-each direction and counted the number of restaurants (including all cuisines).
+• Proximity to restaurants (continuous): We calculated the harmonic mean of distance of cafes to other restaurants (including all cuisines) in the city. Larger values indicate larger distances to restaurants in the city indicating less competition.
 
-• Number of nearby parking lots (continuous) using the bounding box method.
+• Nearest distance to a chain cafe.
+
+• Proximity to other cafes using the harmonic mean.
+
+• Proximity to nearby parking lots (continuous) using the harmonic mean.
 
 • Distance to nearest tourist attraction.
 
-• Number of public transit stops within a block.
+• Distance to nearest public transport stop.
+
+• Proximity to stops.
 
 • Distance to nearest street.
 
 • Whether the cafe is located in downtown or not.
 
-• Customer density nearby.
+• Number of customers nearby.
 
 • Rental costs of cafes: We used the rent data from Zolo and a grid covering the
 Toronto region to interpolate the rental cost across the city. We used the inverse
@@ -157,8 +159,12 @@ of the nearest grid point to each cafe.
 
 ## Model building 
 After extracting relevant location, cost of business and nearby competition
-based features, we moved on to the predictive modeling stage of the project. We
-trained a couple of classification models: elastic net and random forest classifier. We used
+based features, we moved on to the predictive modeling stage of the project. We first began with studying the correlation between features. We plot below the correlation heatmap between the features and observed that no feature was highly correlated with other features in the dataset. 
+<p>
+<img src="figures/correlation_heatmap.png" width="800" height="400"/>
+</p>
+
+We trained a couple of classification models: elastic net and random forest classifier. We used
 nested grid search spatial cross-validation to fine-tune our model with 5 outer folds and 5
 repetitions. We chose the fine-tuned model based on the best AUC score.
 
@@ -167,12 +173,42 @@ We predict closure for both non-chain and chain cafes and plot the best and wors
 for both on the basemap of Toronto.
 
 ## Results
-Our best model from the two was the elastic net model since it had the largest AUC scores
-on the nested cross-validation sets. We obtained a mean AUC of 0.64 for the outer folds from the elastic net
-model. The model does a modest job of predicting store closure.
+The AUC scores on the nested cross-validation sets were comparable for both the elastic net model (0.6 $\pm$ 0.09) and random forest (0.57 $\pm$ 0.08). However, the elastic net model performed no better on the test set than the baseline model with a closure probability of 0.27 (observed closure rate). We therefore selected the random forest classifier as our final model. The model does a modest job of predicting store closure. Below we plot the feature importances from the random forest model. Competition and accessibility based features such as proximity to the nearest chain cafe and other restaurants, and the number of nearby public transport stops were the top features identified by the model.
+<p>
+<img src="figures/feature_importances.png" width="500" height="300"/>
+</p>
 
 From the test set, we predict top and worst locations based on closure probabilities in the
 city as shown in the figure below. The red spots indicate the worst whereas the green ones the best.
-<p>
-<img src="figures/location_recommendations.png" width="400" height="300"/>
+<p float="left">
+<img src="figures/best_worst_locations_all_cafes.png" width="500" height="300"/>
+<img src="figures/best_locations_zoomed.png" width="500" height="300"/>
 </p>
+
+The best locations with a mean closure probability of 0.17 were as follows:
+
+• 75, Victoria Street, King East, Toronto Centre, Old Toronto, Toronto, Ontario, M5C 2B1, Canada
+
+• 9, Renfrew Place, Entertainment District, Spadina—Fort York, Old Toronto, Toronto, Ontario, M5V 1Z1, Canada
+
+• 16, Dalhousie Street, Garden District, Toronto Centre, Old Toronto, Toronto, Ontario, M5C 1R9, Canada
+
+• 195, Church Street, Garden District, Toronto Centre, Old Toronto, Toronto, Ontario, M5B 1Z2, Canada
+
+• 30, Duncan Street, Entertainment District, Spadina—Fort York, Old Toronto, Toronto, Ontario, M5V 1W2, Canada
+
+The worst locations with a mean closure probability of 0.69 were:
+
+• 200, Silver Star Boulevard, Scarborough—Agincourt, Scarborough, Toronto, Ontario, M1V 5H4, Canada
+
+• 102, Galaxy Boulevard, Etobicoke North, Etobicoke, Toronto, Ontario, M9W 6J6, Canada
+
+• Voyager Court North, Etobicoke North, Etobicoke, Toronto, Ontario, M9W 5P3, Canada
+
+• 5, Lavington Drive, Martin Grove Gardens, Etobicoke Centre, Etobicoke, Toronto, Ontario, M9R 2J2, Canada
+
+• Highway 401, Etobicoke North, Etobicoke, Toronto, Ontario, M9R 3T9, Canada
+
+• Arrow Road, Humber River—Black Creek, North York, Toronto, Ontario, M9M 2L4, Canada
+
+• 3650, Victoria Park Avenue, Don Valley North, Scarborough, North York, Toronto, Ontario, M1W 3S2, Canada
