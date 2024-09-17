@@ -76,47 +76,6 @@ The commercial property rental dataset contained 380 duplicate values with ident
 and rent and therefore we removed them. Finally, the Toronto population data contained 21,972 values from the GTA and 2 null values
 that we dropped from downstream analysis.
 
-### Exploratory Data Analysis
-
-#### Rent comparison between downtown and rest of Toronto
-We observe that rents in downtown ($34) are appreciably higher than outer
-regions ($20) with statistical significance (p < 2.2e-16). However, the mean rent in areas around
-the cafes doesn’t distinguish between open and closed cafes suggesting that rent does not
-have significant association with cafe closure.
-<p>
-<img src="figures/rent_comparison.png" width="400" height="300"/>
-</p>
-
-#### Chain vs. independent cafe
-We labelled each cafe in our data whether it is a chain cafe or not with the hypothesis that
-chain cafes will be less susceptible to closures. This was validated in our data after performing
-chi-square contingency test where we compare the observed vs. expected distribution of
-cafe closures in chain vs. non-chain cafes. The discrepancy between the
-distributions is statistically significant (p−value = 1E-4). Chain cafes closed at only 9% rate compared to non-chain cafes at 31%.
-
-Observed distribution of closure in chain
-vs. non-chain cafes
-|                   |  Closed  |  Open |
-| :---------------- | :------: | ----: |
-| Chain             |   7      | 72    |
-| Not-chain         |   116    | 258   |
-
-Expected distribution of closure in chain
-vs. non-chain cafes
-|                   |  Closed  |  Open |
-| :---------------- | :------: | ----: |
-| Chain             |   21     | 58    |
-| Not-chain         |   102    | 272   |
-
-#### Local competitors
-We compared the proximity of cafes to all restaurants in the city by calculating the harmonic mean of the distances. The hypothesis was that the further the distance between a cafe and restaurants in the city, lesser the competition and therefore lower the closure rate. We see some indication of that in the boxplot below where the median distance between open cafes and restaurants is larger than for closed cafes (p = 0.08). 
-<p>
-<img src="figures/num_restaurants.png" width="450" height="300"/>
-</p>
-
-## Predictive Modeling
-Using our myriad data sources, we engineered features and trained a classification model that predicts if the cafe was closed or open. 
-
 ### Feature engineering 
 Through our wide collection of datasets, we created the following features:
 • Chain cafe (binary): Whether the cafe name is close to ‘Aroma Espresso Bar’, ‘Delimark
@@ -157,6 +116,53 @@ of the nearest grid point to each cafe.
 <img src="figures/rent_idw.png" width="500" height="300"/>
 </p> 
 
+### Exploratory Data Analysis
+
+#### Rent comparison between downtown and rest of Toronto
+We observe that rents in downtown ($34) are appreciably higher than outer
+regions ($20) with statistical significance (p < 2.2e-16). However, the mean rent in areas around
+the cafes doesn’t distinguish between open and closed cafes suggesting that rent does not
+have significant association with cafe closure.
+<p>
+<img src="figures/rent_comparison.png" width="400" height="300"/>
+</p>
+
+#### Chain vs. independent cafe
+We labelled each cafe in our data whether it is a chain cafe or not with the hypothesis that
+chain cafes will be less susceptible to closures. This was validated in our data after performing
+chi-square contingency test where we compare the observed vs. expected distribution of
+cafe closures in chain vs. non-chain cafes. The discrepancy between the
+distributions is statistically significant (p−value = 1E-4). Chain cafes closed at only 9% rate compared to non-chain cafes at 31%.
+
+Observed distribution of closure in chain
+vs. non-chain cafes
+|                   |  Closed  |  Open |
+| :---------------- | :------: | ----: |
+| Chain             |   7      | 72    |
+| Not-chain         |   116    | 258   |
+
+Expected distribution of closure in chain
+vs. non-chain cafes
+|                   |  Closed  |  Open |
+| :---------------- | :------: | ----: |
+| Chain             |   21     | 58    |
+| Not-chain         |   102    | 272   |
+
+#### Distance to main streets
+We compared the nearest distance to a main street for all cafes with the hypothesis being that main streets often have high vehicle and less pedestrian traffic. Therefore, closer proximity to main streets must be negatively correlated with closures. We see slight confirmation of that in the plot below where the open cafes were situated further away from main streets than closed cafes (p = 0.03).
+<p>
+<img src="figures/nearest_main_street.png" width="450" height="300"/>
+</p>
+
+#### Local competitors
+We compared the proximity of cafes to all restaurants in the city by calculating the harmonic mean of the distances. The hypothesis was that the further the distance between a cafe and restaurants in the city, lesser the competition and therefore lower the closure rate. We see some indication of that in the boxplot below where the median distance between open cafes and restaurants is larger than for closed cafes (p = 0.08). 
+<p>
+<img src="figures/num_restaurants.png" width="450" height="300"/>
+</p>
+
+## Predictive Modeling
+Using our myriad data sources, we engineered features and trained a classification model that predicts if the cafe was closed or open. 
+
 ## Model building 
 After extracting relevant location, cost of business and nearby competition
 based features, we moved on to the predictive modeling stage of the project. We first began with studying the correlation between features. We plot below the correlation heatmap between the features and observed that no feature was highly correlated with other features in the dataset. 
@@ -185,7 +191,7 @@ city as shown in the figure below. The red spots indicate the worst whereas the 
 <img src="figures/best_locations_zoomed.png" width="500" height="300"/>
 </p>
 
-The best locations with a mean closure probability of 0.17 were as follows:
+The best locations were situated in the downtown/Old Toronto area due to better accessibility and location attractiveness. They had a mean closure probability of 0.17 and their addresses were as follows:
 
 • 75, Victoria Street, King East, Toronto Centre, Old Toronto, Toronto, Ontario, M5C 2B1, Canada
 
@@ -197,7 +203,7 @@ The best locations with a mean closure probability of 0.17 were as follows:
 
 • 30, Duncan Street, Entertainment District, Spadina—Fort York, Old Toronto, Toronto, Ontario, M5V 1W2, Canada
 
-The worst locations with a mean closure probability of 0.69 were:
+The worst locations with a mean closure probability of 0.69 are listed below and they were situated outside downtown.
 
 • 200, Silver Star Boulevard, Scarborough—Agincourt, Scarborough, Toronto, Ontario, M1V 5H4, Canada
 
