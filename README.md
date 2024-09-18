@@ -2,7 +2,7 @@
 
 ## Introduction
 
-One of the prime considerations for any business owner looking to launch a new store is location. A great location includes an ample local consumer-base, easy accessibility, affordable rent or cost of space and low competition from other similar establishments. We analyze spatial variables to study their impact on the success of coffee shops or cafes in the city of Toronto. By studying the factors that influence success or failures, we can help avoid financial losses, suggest optimal resource allocation and enable informed decision-making for prospective business owners. More specifically, the goal of this work was to predict store closures and develop a strategy for identifying optimal locations for opening new cafes. We downloaded and scraped relevant spatial data such as a list of open cafes from 2020 [Kaggle](https://www.kaggle.com/datasets/kevinbi/toronto-restaurants). The ground truth or label indicating whether the store is open or closed today was obtained from scraping Google search results for each store. We then engineered features such as whether the cafe was a chain or not, proximity of the cafes to Toronto downtown and subway stations, availability of other cafes and restaurants nearby (both chain and non-chain cafes), availability of parking lots nearby and estimated rent of commercial space around the stores. We trained a spatial model to predict store closures from the features. Lastly, we scraped locations of available commercial properties up for sale in the city and recommended a few spots that our model predicts to be optimum for opening a cafe. 
+One of the prime considerations for any business owner looking to launch a new store is location. A great location includes an ample local consumer-base, easy accessibility, affordable rent or cost of space and low competition from other similar establishments. In this work, we analyze spatial factors to understand their impact on the success of coffee shops or cafes in the city of Toronto. By studying the factors that influence success or failures, we can help avoid financial losses, suggest optimal resource allocation and enable informed decision-making for prospective business owners. More specifically, the goal of this work is to predict store closures and develop a strategy for identifying optimal locations for opening new cafes. We downloaded and scraped relevant spatial data such as a list of open cafes from 2020 [Kaggle](https://www.kaggle.com/datasets/kevinbi/toronto-restaurants). The ground truth or label indicating whether the store is open or closed today was obtained from scraping Google search results for each store. We then engineered features such as whether the cafe was a chain or not, proximity of the cafes to Toronto downtown and subway stations, availability of other cafes and restaurants nearby (both chain and non-chain cafes), availability of parking lots nearby and estimated rent of commercial space around the stores. We trained a spatial model to predict store closures from the features. Lastly, we scraped locations of available commercial properties up for sale in the city and recommended a few spots that our model predicts to be optimum for opening a cafe. 
 
 ## Data Sources
 
@@ -15,7 +15,7 @@ city (258 cafes in 544 km2 area). Additionally, since the Kaggle dataset was 4 y
 programatically looking up the name and address of each restaurant on Google and
 searching for the phrase ‘permanently closed’ in the html text. The location of open
 and closed cafes throughout the city and a closer look at downtown
-region are shown in figure below. In total, the cafes in the city experienced a 27% closure rate
+region are shown in figures below. In total, the cafes in the city experienced a 27% closure rate
 in the past 4 years.
 <p float="left">
 <img src="figures/cafe_locations.png" width="500" height="300"/>
@@ -26,7 +26,7 @@ in the past 4 years.
 was obtained from the Zolo website [Zolo](https://www.zolo.ca/toronto-real-estate/commercial-for-lease). We scraped details including rental address and price per square feet for 644 listings in the city. We converted the address information
 to longitude and latitude information using the Geodata API. The rents ranged from
 $1 to $900 per square feet with an average of $34 in downtown and $21 in the rest of
-Toronto. We will later test the viability of these locations for opening new cafes. The figure below shows the available commercial listings in the city.
+Toronto. We will later predict the viability of these locations for opening new cafes. The figure below shows the available commercial listings in the city.
 <p>
 <img src="figures/rental_space.png" width="400" height="300"/>
 </p>
@@ -77,32 +77,33 @@ and rent and therefore we removed them. Finally, the Toronto population data con
 that we dropped from downstream analysis.
 
 ### Feature engineering 
+
 Through our wide collection of datasets, we created the following features:
 • Chain cafe (binary): Whether the cafe name is close to ‘Aroma Espresso Bar’, ‘Delimark
 Cafe’, ‘Starbucks’ or ‘Tim Horton’s’.
 
 • Proximity to restaurants (continuous): We calculated the harmonic mean of distance of cafes to other restaurants (including all cuisines) in the city. Larger values indicate larger distances to restaurants in the city indicating less competition.
 
-• Nearest distance to a chain cafe.
+• Nearest distance to a chain cafe (continuous).
 
-• Proximity to other cafes using the harmonic mean.
+• Proximity to other cafes using the harmonic mean (continuous).
 
-• Proximity to nearby parking lots (continuous) using the harmonic mean.
+• Proximity to nearby parking lots (continuous) using the harmonic mean (continuous).
 
-• Distance to nearest tourist attraction.
+• Distance to nearest tourist attraction (continuous).
 
-• Distance to nearest public transport stop.
+• Distance to nearest public transport stop (continuous).
 
-• Proximity to stops.
+• Proximity to stops (continuous).
 
-• Distance to nearest street.
+• Distance to nearest street (continuous).
 
-• Whether the cafe is located in downtown or not.
+• Whether the cafe is located in downtown or not (binary).
 
-• Number of customers nearby.
+• Number of customers nearby (continuous).
 
 • Rental costs of cafes: We used the rent data from Zolo and a grid covering the
-Toronto region to interpolate the rental cost across the city. We used the inverse
+Toronto region to interpolate the rental cost across the city (continuous). We used the inverse
 distance weighting technique for interpolation. The figure below shows
 the interpolated rental distribution in the city. The highest rents were at the following places:
 
@@ -120,7 +121,7 @@ of the nearest grid point to each cafe.
 
 #### Rent comparison between downtown and rest of Toronto
 We observe that rents in downtown ($34) are appreciably higher than outer
-regions ($20) with statistical significance (p < 2.2e-16). However, the mean rent in areas around
+regions ($20) with statistical significance ($p$ < 2.2e-16). However, the mean rent in areas around
 the cafes doesn’t distinguish between open and closed cafes suggesting that rent does not
 have significant association with cafe closure.
 <p>
@@ -132,7 +133,7 @@ We labelled each cafe in our data whether it is a chain cafe or not with the hyp
 chain cafes will be less susceptible to closures. This was validated in our data after performing
 chi-square contingency test where we compare the observed vs. expected distribution of
 cafe closures in chain vs. non-chain cafes. The discrepancy between the
-distributions is statistically significant (p−value = 1E-4). Chain cafes closed at only 9% rate compared to non-chain cafes at 31%.
+distributions is statistically significant ($p$ −value = 1E-4). Chain cafes closed at only 9% rate compared to non-chain cafes at 31% whereas the overall closure rate was 27%.
 
 Observed distribution of closure in chain
 vs. non-chain cafes
@@ -149,23 +150,23 @@ vs. non-chain cafes
 | Not-chain         |   102    | 272   |
 
 #### Distance to main streets
-We compared the nearest distance to a main street for all cafes with the hypothesis being that main streets often have high vehicle and less pedestrian traffic. Therefore, closer proximity to main streets must be negatively correlated with closures. We see slight confirmation of that in the plot below where the open cafes were situated further away from main streets than closed cafes (p = 0.03).
+We compared the nearest distance to a main street for all cafes with the hypothesis that main streets often have high vehicle and less pedestrian traffic. Therefore, closer proximity to main streets might be negatively correlated with closures. We see slight confirmation of that in the plot below where the open cafes were situated further away from main streets than closed cafes ($p$ = 0.03).
 <p>
 <img src="figures/nearest_main_street.png" width="450" height="300"/>
 </p>
 
 #### Local competitors
-We compared the proximity of cafes to all restaurants in the city by calculating the harmonic mean of the distances. The hypothesis was that the further the distance between a cafe and restaurants in the city, lesser the competition and therefore lower the closure rate. We see some indication of that in the boxplot below where the median distance between open cafes and restaurants is larger than for closed cafes (p = 0.08). 
+We compared the proximity of cafes to all restaurants in the city by calculating the harmonic mean of the distances. The hypothesis was that the further the distance between a cafe and restaurants in the city, lesser the competition and therefore lower the closure rate. We see some indication of that in the boxplot below where the median distance between open cafes and restaurants is larger than that for closed cafes ($p$ = 0.08). 
 <p>
 <img src="figures/num_restaurants.png" width="450" height="300"/>
 </p>
 
 ## Predictive Modeling
-Using our myriad data sources, we engineered features and trained a classification model that predicts if the cafe was closed or open. 
+Using our myriad data sources and engineered features, we trained a classification model that predicts if the cafe was closed or open. 
 
 ## Model building 
 After extracting relevant location, cost of business and nearby competition
-based features, we moved on to the predictive modeling stage of the project. We first began with studying the correlation between features. We plot below the correlation heatmap between the features and observed that no feature was highly correlated with other features in the dataset. 
+based features, we moved on to the predictive modeling stage of the work. We first began with studying the correlation between features. We plot below the correlation heatmap between the features and observed that no feature was highly correlated with other features in the dataset. 
 <p>
 <img src="figures/correlation_heatmap.png" width="800" height="400"/>
 </p>
@@ -175,8 +176,7 @@ nested grid search spatial cross-validation to fine-tune our model with 5 outer 
 repetitions. We chose the fine-tuned model based on the best AUC score.
 
 Using the same features, we use the available commercial space rental data as the test set.
-We predict closure for both non-chain and chain cafes and plot the best and worst locations
-for both on the basemap of Toronto.
+We predict closure probabilities for both independent/non-chain and chain cafes and plot the best and worst locations for both on the basemap of Toronto.
 
 ## Results
 The AUC scores on the nested cross-validation sets were comparable for both the elastic net model (0.6 $\pm$ 0.09) and random forest (0.57 $\pm$ 0.08). However, the elastic net model performed no better on the test set than the baseline model with a closure probability of 0.27 (observed closure rate). We therefore selected the random forest classifier as our final model. The model does a modest job of predicting store closure. Below we plot the feature importances from the random forest model. Competition and accessibility based features such as proximity to the nearest chain cafe and other restaurants, and the number of nearby public transport stops were the top features identified by the model.
@@ -184,8 +184,11 @@ The AUC scores on the nested cross-validation sets were comparable for both the 
 <img src="figures/feature_importances.png" width="500" height="300"/>
 </p>
 
-From the test set, we predict top and worst locations based on closure probabilities in the
-city as shown in the figure below. The red spots indicate the worst whereas the green ones the best.
+From the test set, we predict top and worst locations for non-chain and chain cafes based on closure probabilities in the
+city as shown in the figures below. The red spots indicate the worst whereas the green ones the best.
+
+### Independent cafes
+Best and worst locations for opening independent cafes:
 <p float="left">
 <img src="figures/best_worst_locations_all_cafes.png" width="500" height="300"/>
 <img src="figures/best_locations_zoomed.png" width="500" height="300"/>
@@ -218,3 +221,27 @@ The worst locations with a mean closure probability of 0.69 are listed below and
 • Arrow Road, Humber River—Black Creek, North York, Toronto, Ontario, M9M 2L4, Canada
 
 • 3650, Victoria Park Avenue, Don Valley North, Scarborough, North York, Toronto, Ontario, M1W 3S2, Canada
+
+### Chain cafes
+For chain cafes, the best and worst locations were as follows:
+
+<p float="left">
+<img src="figures/best_worst_locations_chain.png" width="500" height="300"/>
+<img src="figures/best_locations_zoomed_chain.png" width="500" height="300"/>
+</p>
+
+The best locations were again situated in the downtown/Old Toronto area. They had a mean closure probability of 0.14 and the new addresses were as follows:
+
+• Dundas Street West, Discovery District, Spadina—Fort York, Old Toronto, Toronto, Ontario, M5T 1G7, Canada
+
+• 222, Spadina Avenue, Chinatown, Spadina—Fort York, Old Toronto, Toronto, Ontario, M5T 2C2, Canada
+
+The worst locations with a mean closure probability of 0.69 are listed below and the new locations were situated outside downtown.
+
+• 2010, Ellesmere Road, Scarborough—Guildwood, Scarborough, Toronto, Ontario, M1H 3B7, Canada
+
+• 62, Scarsdale Road, Don Valley East, North York, Toronto, Ontario, M3B 2R2, Canada
+
+• 1113, Finch Avenue West, York Centre, North York, Toronto, Ontario, M3J 2C5, Canada
+
+• 18, Ashwarren Road, York Centre, North York, Toronto, Ontario, M3J 1N4, Canada
