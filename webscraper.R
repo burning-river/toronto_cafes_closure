@@ -53,4 +53,48 @@ for (ind in 1:n_rows){
 }
 status_list = as.logical(status_list)
 cafes_old_data$is_closed = status_list
-write.csv(cafes_old_data, paste(cwd, '/cafes_old_data.csv',sep=''))    
+write.csv(cafes_old_data, paste(cwd, '/cafes_old_data.csv',sep=''))  
+
+desc_list = list()
+for (page_no in 1:93){
+  link <- paste('https://www.zolo.ca/toronto-real-estate/commercial-for-lease/page-',as.character(page_no),sep ='')
+  page <- read_html(link)
+
+  summaries_css <- page %>%
+    html_elements(css = ".card-listing")
+  desc = html_text(summaries_css)
+  desc_list <- c(desc_list, desc)
+}
+
+rent_info = do.call(rbind, Map(data.frame,
+                              info=desc_list))
+write.csv(rent_info, paste(cwd, '/rent_info.csv',sep=''))
+
+rent_info = read.csv(paste(cwd, '/rent_info.csv',sep=''))
+rent_info_not_null = rent_info[,2][!str_detect(rent_info[,2], 'X/sqft')]
+rent_info_not_null_per_sqft = rent_info_not_null[str_detect(rent_info_not_null, '/sqft')]
+rent_per_sqft_list = list()
+n_rows = length(rent_info_not_null_per_sqft)
+for (ind in 1:n_rows){
+  rent = str_extract_all(rent_info_not_null_per_sqft[ind], '\\d+/sqft')[1]
+  rent = str_extract_all(rent, '\\d+')
+  rent = as.integer(rent)
+  rent_per_sqft_list <- c(rent_per_sqft_list, rent)
+}
+
+rent_per_sqft = do.call(rbind, Map(data.frame, rent=rent_per_sqft_list))
+longitude_list = list()
+latitude_list = list()
+n_rows = length(rent_info_not_null_per_sqft)
+for (ind in 1:n_rows){
+  loc = str_extract(rent_info_not_null_per_sqft[ind], '.+ Toronto, ON')
+  long_lat = geocode(location = loc)
+  longitude_list <- c(longitude_list, long_lat[[1]])
+  latitude_list <- c(latitude_list, long_lat[[2]])
+}
+
+rent_per_sqft = do.call(rbind, Map(data.frame,
+                                       longitude=longitude_list,
+                                       latitude=latitude_list,
+                                      rent=rent_per_sqft_list))
+write.csv(rent_per_sqft, paste(cwd, '/rent_per_sqft.csv',sep=''))
